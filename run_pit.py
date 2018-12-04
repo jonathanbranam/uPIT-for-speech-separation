@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding=utf-8
 
 # wujian@2018
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--config",
         type=str,
-        default="train.yaml",
+        default="conf/train.yaml",
         dest="config",
         help="Location of .yaml configure files for training")
     parser.add_argument(
