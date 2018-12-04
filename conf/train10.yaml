@@ -1,18 +1,18 @@
 # config for training
 
 trainer:
-  checkpoint: "./tune/2spk_pit_a"
+  checkpoint: "./tune/2spk_pit_a10"
   optimizer: "adam"
   # 1e-3 => str
   # 1.0e-3 => float
   lr: 1.0e-3
   momentum: 0.9
-  weight_decay: 0
+  weight_decay: 1.0e-5
   clip_norm: 200
   min_lr: 1.0e-10
-  patience: 1
+  patience: 0
   factor: 0.7
-  disturb_std: 0.2
+  disturb_std: 0.1
 
 model:
   num_spks: 2
@@ -34,24 +34,24 @@ spectrogram_reader:
   apply_abs: true
 
 train_scp_conf:
-  mixture: "./conf/2spk/simple30/train/mix.scp"
-  spk1: "./conf/2spk/simple30/train/spk1.scp"
-  spk2: "./conf/2spk/simple30/train/spk2.scp"
+  mixture: "./conf/2spk/simple10/train/mix.scp"
+  spk1: "./conf/2spk/simple10/train/spk1.scp"
+  spk2: "./conf/2spk/simple10/train/spk2.scp"
 
 valid_scp_conf:
-  mixture: "./conf/2spk/simple30/dev/mix.scp"
-  spk1: "./conf/2spk/simple30/dev/spk1.scp"
-  spk2: "./conf/2spk/simple30/dev/spk2.scp"
+  mixture: "./conf/2spk/simple10/dev/mix.scp"
+  spk1: "./conf/2spk/simple10/dev/spk1.scp"
+  spk2: "./conf/2spk/simple10/dev/spk2.scp"
 
 debug_scp_conf:
-  mixture: "./conf/2spk/simple30/mix.scp"
-  spk1: "./conf/2spk/simple30/spk1.scp"
-  spk2: "./conf/2spk/simple30/spk2.scp"
+  mixture: "./conf/2spk/simple10/dev/mix.scp"
+  spk1: "./conf/2spk/simple10/dev/spk1.scp"
+  spk2: "./conf/2spk/simple10/dev/spk2.scp"
 
 dataloader:
   shuffle: true
   batch_size: 8
   drop_last: false
   apply_log: true
-  mvn_dict: "data/cmvn.dict"
+  mvn_dict: "./conf/2spk/simple10/cmvn.dict"
 
