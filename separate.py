@@ -111,7 +111,7 @@ def run(args):
         for index, stft_mat in enumerate(spk_spectrogram):
             if np.isnan(stft_mat).any():
                 print(f"stft_mat {index} after separation has nans")
-            print(f"istft({index},{np.min(stft_mat)},{np.max(stft_mat)})")
+            # print(f"istft({index},{np.min(stft_mat)},{np.max(stft_mat)})")
             istft(
                 os.path.join(args.dump_dir, '{}.spk{}.wav'.format(
                     key, index + 1)),
@@ -123,7 +123,6 @@ def run(args):
                 norm=norm,
                 fs=8000,
                 nsamps=samps.size)
-            print("istft() complete")
             if args.dump_mask:
                 sio.savemat(
                     os.path.join(args.dump_dir, '{}.spk{}.mat'.format(
