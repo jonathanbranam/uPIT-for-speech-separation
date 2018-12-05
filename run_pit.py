@@ -62,8 +62,9 @@ def train(args):
         reader_conf,
         loader_conf,
         train=False)
-    if args.checkpoint is not None and len(args.checkpoint) > 0:
-        config_dict["trainer"]["checkpoint"] = args.checkpoint
+    if args.out_base_dir is not None and len(args.out_base_dir) > 0:
+        config_dict["trainer"]["checkpoint"] = (args.out_base_dir + '/' +
+                config_dict["trainer"]["checkpoint"])
     checkpoint = config_dict["trainer"]["checkpoint"]
     logger.info("Training for {} epoches -> {}...".format(
         args.num_epoches, "default checkpoint"
@@ -83,11 +84,11 @@ if __name__ == '__main__':
         default="",
         help="This option is used to show what this command is runing for")
     parser.add_argument(
-        "--checkpoint",
+        "--out-base-dir",
         type=str,
         default=None,
-        dest="checkpoint",
-        help="Override config.yaml trainer.checkpoint")
+        dest="out_base_dir",
+        help="Provide a base directory for output such as checkpointing.")
     parser.add_argument(
         "--wav-base-dir",
         type=str,
