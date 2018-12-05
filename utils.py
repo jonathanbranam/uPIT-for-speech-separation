@@ -160,14 +160,23 @@ def parse_yaml(yaml_conf):
     return num_bins, config_dict
 
 
+my_loggers = {}
+
 def get_logger(
         name,
         format_str="%(asctime)s [%(pathname)s:%(lineno)s - %(levelname)s ] %(message)s"):
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter(format_str)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    return logger
+    global my_loggers
+    if name in my_loggers:
+        return my_loggers[name]
+    else:
+        logger = logging.getLogger(name)
+        my_loggers[name] = logger
+        logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter(format_str)
+        handler.setFormatter(formatter)
+        if logger.hasHandlers():
+            logger.handlers.clear()
+        logger.addHandler(handler)
+        return logger
