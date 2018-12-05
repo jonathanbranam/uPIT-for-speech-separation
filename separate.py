@@ -86,6 +86,7 @@ def run(args):
 
     utt_dict = parse_scps(args.wave_scp)
     if args.wav_base_dir is not None and len(args.wav_base_dir) > 0:
+        updated_utt_dict = {}
         for key, value in utt_dict.items():
             updated_utt_dict[key] = args.wav_base_dir+'/'+value
         utt_dict = updated_utt_dict
@@ -147,6 +148,12 @@ if __name__ == '__main__':
         "wave_scp",
         type=str,
         help="Location of input wave scripts in kaldi format")
+    parser.add_argument(
+        "--wav-base-dir",
+        type=str,
+        default=None,
+        dest="wav_base_dir",
+        help="Base directory to append to wav files paths in scp")
     parser.add_argument(
         "--cuda",
         default=False,
