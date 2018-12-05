@@ -12,7 +12,7 @@ trainer:
   min_lr: 1.0e-10
   patience: 1
   factor: 0.7
-  disturb_std: 0.2
+  disturb_std: 0.0
 
 model:
   num_spks: 2
@@ -53,5 +53,5 @@ dataloader:
   batch_size: 8
   drop_last: false
   apply_log: true
-  mvn_dict: "data/cmvn.dict"
+  mvn_dict: "./conf/2spk/simple30/cmvn.dict"
 

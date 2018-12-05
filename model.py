@@ -36,7 +36,7 @@ class PITNet(th.nn.Module):
         ])
         self.non_linear = {
             "relu": th.nn.functional.relu,
-            "sigmoid": th.nn.functional.sigmoid,
+            "sigmoid": th.sigmoid, #th.nn.functional.sigmoid,
             "tanh": th.nn.functional.tanh
         }[non_linear]
         self.num_bins = num_bins

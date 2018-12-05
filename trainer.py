@@ -88,6 +88,7 @@ class PITrainer(object):
         logger.info("Training...")
         tot_loss = num_batch = 0
         for input_sizes, nnet_input, source_attr, target_attr in dataset:
+            # with th.autograd.detect_anomaly():
             num_batch += 1
             nnet_input = packed_sequence_cuda(nnet_input) if isinstance(
                 nnet_input, PackedSequence) else nnet_input.to(device)
@@ -99,7 +100,7 @@ class PITrainer(object):
 
             masks = self.nnet(nnet_input)
             cur_loss = self.permutate_loss(masks, input_sizes, source_attr,
-                                           target_attr)
+                                        target_attr)
             tot_loss += cur_loss.item()
 
             cur_loss.backward()

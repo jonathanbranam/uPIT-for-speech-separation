@@ -12,7 +12,7 @@ trainer:
   min_lr: 1.0e-10
   patience: 0
   factor: 0.7
-  disturb_std: 0.1
+  disturb_std: 0.0
 
 model:
   num_spks: 2

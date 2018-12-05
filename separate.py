@@ -37,17 +37,27 @@ class Separator(object):
         """
         if not np.iscomplexobj(spectra):
             raise ValueError("Input must be matrix in complex value")
+        if np.isnan(spectra).any():
+            print(f"spectra has nans")
         # compute (log)-magnitude spectrogram
         input_spectra = np.log(np.maximum(
             np.abs(spectra), EPSILON)) if apply_log else np.abs(spectra)
+        if np.isnan(input_spectra).any():
+            print(f"input_spectra 1 has nans")
         # apply cmvn or not
         input_spectra = apply_cmvn(input_spectra,
                                    cmvn) if cmvn else input_spectra
 
+        if np.isnan(input_spectra).any():
+            print(f"input_spectra 2 has nans")
         out_masks = self.nnet(
             th.tensor(input_spectra, dtype=th.float32, device=self.location),
             train=False)
         spk_masks = [spk_mask.cpu().data.numpy() for spk_mask in out_masks]
+        for i, spk_mask in enumerate(spk_masks):
+            if np.isnan(spk_mask).any():
+                print(f"spk_mask {i} has nans")
+                spk_mask[np.isnan(spk_mask)] = 0
         return spk_masks, [spectra * spk_mask for spk_mask in spk_masks]
 
 
@@ -91,10 +101,17 @@ def run(args):
         print("Processing utterance {}".format(key))
         num_utts += 1
         norm = np.linalg.norm(samps, np.inf)
+        if np.isnan(norm).any():
+            print(f"norm has nans")
+        if np.isnan(stft_mat).any():
+            print(f"stft_mat before separation has nans")
         spk_mask, spk_spectrogram = separator.seperate(
             stft_mat, cmvn=dict_mvn, apply_log=apply_log)
 
         for index, stft_mat in enumerate(spk_spectrogram):
+            if np.isnan(stft_mat).any():
+                print(f"stft_mat {index} after separation has nans")
+            print(f"istft({index},{np.min(stft_mat)},{np.max(stft_mat)})")
             istft(
                 os.path.join(args.dump_dir, '{}.spk{}.wav'.format(
                     key, index + 1)),
@@ -106,6 +123,7 @@ def run(args):
                 norm=norm,
                 fs=8000,
                 nsamps=samps.size)
+            print("istft() complete")
             if args.dump_mask:
                 sio.savemat(
                     os.path.join(args.dump_dir, '{}.spk{}.mat'.format(
