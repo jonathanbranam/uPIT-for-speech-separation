@@ -85,6 +85,10 @@ def run(args):
     separator = Separator(dcnet, args.state_dict, cuda=args.cuda)
 
     utt_dict = parse_scps(args.wave_scp)
+    if args.wav_base_dir is not None and len(args.wav_base_dir) > 0:
+        for key, value in utt_dict.items():
+            updated_utt_dict[key] = args.wav_base_dir+'/'+value
+        utt_dict = updated_utt_dict
     num_utts = 0
     for key, utt in utt_dict.items():
         try:

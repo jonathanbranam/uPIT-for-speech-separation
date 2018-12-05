@@ -13,10 +13,12 @@ from utils import nfft, parse_yaml, get_logger
 
 logger = get_logger(__name__)
 
-def uttloader(scp_config, reader_kwargs, loader_kwargs, train=True):
-    mix_reader = SpectrogramReader(scp_config['mixture'], **reader_kwargs)
+def uttloader(scp_config, wav_base_dir, reader_kwargs, loader_kwargs, train=True):
+    mix_reader = SpectrogramReader(scp_config['mixture'],
+            base_dir=wav_base_dir, **reader_kwargs)
     target_reader = [
-        SpectrogramReader(scp_config[spk_key], **reader_kwargs)
+        SpectrogramReader(scp_config[spk_key],
+            base_dir=wav_base_dir, **reader_kwargs)
         for spk_key in scp_config if spk_key[:3] == 'spk'
     ]
     dataset = Dataset(mix_reader, target_reader)
@@ -49,12 +51,14 @@ def train(args):
     train_loader = uttloader(
         config_dict["train_scp_conf"]
         if not debug else config_dict["debug_scp_conf"],
+        args.wav_base_dir,
         reader_conf,
         loader_conf,
         train=True)
     valid_loader = uttloader(
         config_dict["valid_scp_conf"]
         if not debug else config_dict["debug_scp_conf"],
+        args.wav_base_dir,
         reader_conf,
         loader_conf,
         train=False)
@@ -76,6 +80,12 @@ if __name__ == '__main__':
         type=str,
         default="",
         help="This option is used to show what this command is runing for")
+    parser.add_argument(
+        "--wav-base-dir",
+        type=str,
+        default=None,
+        dest="wav_base_dir",
+        help="Base directory to append to wav files paths in scp")
     parser.add_argument(
         "--config",
         type=str,

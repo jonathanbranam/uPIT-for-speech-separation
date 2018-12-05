@@ -21,11 +21,18 @@ class SpectrogramReader(object):
         Wrapper for short-time fourier transform of dataset
     """
 
-    def __init__(self, wave_scp, **kwargs):
+    def __init__(self, wave_scp, base_dir=None, **kwargs):
         if not os.path.exists(wave_scp):
             raise FileNotFoundError("Could not find file {}".format(wave_scp))
         self.stft_kwargs = kwargs
-        self.wave_dict = parse_scps(wave_scp)
+        wave_dict = parse_scps(wave_scp)
+        # TODO prepend a root path
+        if base_dir is not None and len(base_dir) > 0:
+            updated_wave_dict = {}
+            for key, value in wave_dict.items():
+                updated_wave_dict[key] = base_dir+'/'+value
+            wave_dict = updated_wave_dict
+        self.wave_dict = wave_dict
         self.wave_keys = [key for key in self.wave_dict.keys()]
         logger.info(
             "Create SpectrogramReader for {} with {} utterances".format(

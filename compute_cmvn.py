@@ -22,7 +22,7 @@ def run(args):
         "apply_pow": args.apply_pow
     }
     num_bins = nfft(args.frame_length) // 2 + 1
-    reader = SpectrogramReader(args.wave_scp, **reader_kwargs)
+    reader = SpectrogramReader(args.wave_scp, args.wav_base_dir, **reader_kwargs)
     mean = np.zeros(num_bins)
     std = np.zeros(num_bins)
     num_frames = 0
@@ -48,6 +48,12 @@ if __name__ == '__main__':
         "wave_scp", type=str, help="Location of mixture wave scripts")
     parser.add_argument(
         "cmvn_dst", type=str, help="Location to dump cmvn stats")
+    parser.add_argument(
+        "--wav-base-dir",
+        type=str,
+        default=None,
+        dest="wav_base_dir",
+        help="Base directory to append to wav files paths in scp")
     parser.add_argument(
         "--frame-shift",
         type=int,
