@@ -85,8 +85,8 @@ class PITrainer(object):
 
     def train(self, dataset):
         self.nnet.train()
-        logger.info("Training...")
-        logger.info(f"Device {device} is_cuda: {th.cuda.is_available()}")
+        logger.info(f"Training with device {device} "
+                f"is_cuda: {th.cuda.is_available()}")
         tot_loss = num_batch = 0
         for input_sizes, nnet_input, source_attr, target_attr in dataset:
             # with th.autograd.detect_anomaly():
