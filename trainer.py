@@ -110,6 +110,7 @@ class PITrainer(object):
                 th.nn.utils.clip_grad_norm_(self.nnet.parameters(),
                                             self.clip_norm)
             self.optimizer.step()
+            del cur_loss, masks, nnet_input
 
         return tot_loss / num_batch, num_batch
 
@@ -130,7 +131,7 @@ class PITrainer(object):
 
         return tot_loss / num_batch, num_batch
 
-    def run(self, train_set, dev_set, num_epoches=20):
+    def run(self, train_set, dev_set, num_epoches=20, save_every=10):
         init_loss, _ = self.validate(dev_set)
         logger.info("Epoch {:2d}: dev = {:.4f}".format(0, init_loss))
         th.save(self.nnet.state_dict(),
@@ -149,9 +150,10 @@ class PITrainer(object):
                     epoch, train_loss, on_valid_start - on_train_start,
                     train_num_batch, valid_loss, on_valid_end - on_valid_start,
                     valid_num_batch))
-            save_path = os.path.join(self.checkpoint,
-                                     'epoch.{:d}.pkl'.format(epoch))
-            th.save(self.nnet.state_dict(), save_path)
+            if epoch % save_every == 0 or epoch == num_epoches:
+                save_path = os.path.join(self.checkpoint,
+                                        'epoch.{:d}.pkl'.format(epoch))
+                th.save(self.nnet.state_dict(), save_path)
         logger.info("Training for {} epoches done!".format(num_epoches))
 
     def permutate_loss(self, masks, input_sizes, source_attr, target_attr):
