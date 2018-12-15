@@ -428,6 +428,13 @@ class TrainUpit(object):
 
         dprint(f"Beginning training on {DEVICE}...")
 
+        init_model_file = args.get('--init-model', None)
+        if init_model_file is not None:
+            dprint(f"Loading initial model params from {init_model_file}")
+            loc = None if th.cuda.is_available() else "cpu"
+            self.model.load_state_dict(
+                th.load(init_model_file, map_location=loc))
+
         self.out_dir = Path(args['--output-dir'])
         self.out_dir.mkdir(parents=True, exist_ok=True)
         self.save_every = int(args['--save-every'])
