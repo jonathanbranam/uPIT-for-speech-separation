@@ -42,6 +42,12 @@ Options:
 Examples:
     ./train.py -d --epochs 2
     ./train.py -d --debug-level 3 --epochs 2  --batch-size 2
+
+    # Run for 10 epochs
+    ./train.py --epochs 10
+
+    # Load previous model file and continue training
+    ./train.py --epochs 10 --init-model out/model.10.pkl
 """
 
 from docopt import docopt
