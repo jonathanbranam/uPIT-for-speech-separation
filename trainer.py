@@ -100,10 +100,23 @@ class PITrainer(object):
                 self.nnet.disturb(self.disturb)
 
             masks = self.nnet(nnet_input)
+
+            print(f"  input_sizes: {input_sizes.size()}")
+            print(f"  nnet_input: {type(nnet_input)}")
+            # print(f"  nnet_input: {nnet_input.size()}")
+            print(f"  masks: {type(masks)} {len(masks)}")
+            print(f"  source_attr:")
+            for key, val in source_attr.items():
+                print(f"    {key}: {val.size()}")
+            print(f"  target_attr:")
+            for key, lst in target_attr.items():
+                print(f"    {key}: {[s.size() for s in lst]}")
+
             cur_loss = self.permutate_loss(masks, input_sizes, source_attr,
                                         target_attr)
             tot_loss += cur_loss.item()
 
+            exit(1)
             cur_loss.backward()
 
             if self.clip_norm:
@@ -125,6 +138,18 @@ class PITrainer(object):
                 nnet_input = packed_sequence_cuda(nnet_input) if isinstance(
                     nnet_input, PackedSequence) else nnet_input.to(device)
                 masks = self.nnet(nnet_input)
+
+                print(f"  input_sizes: {input_sizes.size()}")
+                print(f"  nnet_input: {type(nnet_input)}")
+                # print(f"  nnet_input: {nnet_input.size()}")
+                print(f"  masks: {type(masks)} {len(masks)}")
+                print(f"  source_attr:")
+                for key, val in source_attr.items():
+                    print(f"    {key}: {val.size()}")
+                print(f"  target_attr:")
+                for key, lst in target_attr.items():
+                    print(f"    {key}: {[s.size() for s in lst]}")
+
                 cur_loss = self.permutate_loss(masks, input_sizes, source_attr,
                                                target_attr)
                 tot_loss += cur_loss.item()
@@ -185,8 +210,13 @@ class PITrainer(object):
             targets_phase = [t.to(device) for t in target_attr["phase"]]
 
         def loss(permute):
+            print(f"per_permutation_loss()")
             loss_for_permute = []
             for s, t in enumerate(permute):
+                print(f"  permute: {s}, {t}")
+                #print(f"  mixture_phase: {mixture_phase.size()}")
+                #print(f"  sources_spec: {targets_phase[t].size()}")
+                #print(f"  sources_phase: {targets_spect[t].size()}")
                 # refer_spect = targets_spect[t] * th.cos(
                 #     mixture_phase -
                 #     targets_phase[t]) if is_loss_with_psm else targets_spect[t]
@@ -194,6 +224,9 @@ class PITrainer(object):
                 refer_spect = targets_spect[t] * F.relu(
                     th.cos(mixture_phase - targets_phase[t])
                 ) if is_loss_with_psm else targets_spect[t]
+                print(f"  spect: {refer_spect.size()}")
+                print(f"  mix_spec: {mixture_spect.size()}")
+                print(f"  est_masks: {masks[s].size()}")
                 # N x T x F => N x 1
                 utt_loss = th.sum(
                     th.sum(

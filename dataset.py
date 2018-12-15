@@ -238,6 +238,14 @@ class DataLoader(object):
                 th.tensor(t, dtype=th.float32) for t in targets_specs_list
             ]
 
+        print(f"DataLoader._transform:")
+        print(f"  num_frames: {mixture_specs.shape[0]}")
+        print(f"  feature: {input_spectra.shape}")
+        print(f"  source_attr:")
+        print(f"    spectrogram: {source_attr['spectrogram'].size()}")
+        print(f"  target_attr:")
+        print(f"    spectrogram: {[t.size() for t in target_attr['spectrogram']]}")
+
         return {
             "num_frames": mixture_specs.shape[0],
             "feature": th.tensor(input_spectra, dtype=th.float32),
@@ -294,6 +302,14 @@ class DataLoader(object):
                 prepare_target(dict_list, s, "phase")
                 for s in range(self.num_spks)
             ]
+
+        print(f"DataLoader._process:")
+        print(f"  input_sizes: {input_sizes.size()}")
+        print(f"  input_feats: {len(input_feats)}")
+        print(f"  source_attr:")
+        print(f"    spectrogram: {source_attr['spectrogram'].size()}")
+        print(f"  target_attr:")
+        print(f"    spectrogram: {[t.size() for t in target_attr['spectrogram']]}")
 
         return input_sizes, input_feats, source_attr, target_attr
 
