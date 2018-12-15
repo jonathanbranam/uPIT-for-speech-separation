@@ -43,6 +43,7 @@ Examples:
 from docopt import docopt
 
 from itertools import permutations
+import time
 
 import librosa
 
@@ -453,7 +454,7 @@ class TrainUpit(object):
             ])
 
         for epoch in range(self.epochs):
-            dprint(f"Epoch {i:3d}.")
+            dprint(f"Epoch {epoch:3d}.")
             dprint("  Begin training...")
             train_start = time.time()
             train_loss = self.train(train_data)
