@@ -38,6 +38,7 @@ Options:
 
 Examples:
     ./train.py -d --epochs 2
+    ./train.py -d --debug-level 3 --epochs 2  --batch-size 2
 """
 
 from docopt import docopt
@@ -468,8 +469,8 @@ class TrainUpit(object):
             self.sched.step(val_loss)
 
             dprint(f"  training loss: {train_loss:.4f}"
-                    f"({val_start-train_start}s) val loss: {val_loss:.4f} "
-                    f"{val_end-val_start}s")
+                    f"({val_start-train_start:.1f}s) val loss: {val_loss:.4f} "
+                    f"({val_end-val_start:.1f}s)")
 
             # Save out the model params sometimes
 
@@ -562,6 +563,7 @@ def main(args):
     # Bad design, but easy: read directly from args
     trainer = TrainUpit(args)
     trainer.run(args)
+    dprint("Training Complete")
 
 
 defaults = {
