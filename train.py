@@ -419,6 +419,8 @@ class TrainUpit(object):
         # uttloader creates a Dataset which is passed to a DataLoader and returned
         # DataLoader implements __iter__(self) and yields the data in batches
         # load cv data
+        
+        dprint(f"Beginning training on {DEVICE}...")
 
         train_filelist = args['--train-file-list']
         valid_filelist = args['--valid-file-list']
@@ -499,7 +501,7 @@ class WavLoader(object):
 
     def _load(self, filename):
         full_fn = self.rootdir / filename.strip()
-        dprint(f"WavLoader loading {full_fn}.")
+        dprint(f"WavLoader loading {full_fn}.", level=3)
         wav, _ = librosa.load(str(full_fn), sr=None)
         if self.transform_fn is not None:
             return self.transform_fn(wav, **self.tx_kwargs)
