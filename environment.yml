@@ -1,7 +1,7 @@
 name: uPITfSS
 channels:
-  - conda-forge
   - pytorch
+  - conda-forge
   - defaults
 dependencies:
   - audioread=2.1.5=py36_0

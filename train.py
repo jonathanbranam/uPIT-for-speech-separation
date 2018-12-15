@@ -371,10 +371,6 @@ class TrainUpit(object):
 
     def run(self, args):
         """Do a full training run across epochs."""
-        # load training data
-        # uttloader creates a Dataset which is passed to a DataLoader and returned
-        # DataLoader implements __iter__(self) and yields the data in batches
-        # load cv data
 
         dprint(f"Beginning training on {DEVICE}...")
 
