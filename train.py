@@ -200,36 +200,9 @@ class TrainUpit(object):
                     reverse=True)
             dprint(f"Batch indices: {batch_indices}", level=2)
 
-            input_sizes = th.tensor([mix.shape[0] for (mix, _) in batch_set],
-                    dtype=th.float32)
-            model_input = pack_sequence([
-                th.tensor(np.abs(mix), dtype=th.float32)
-                for (mix, _) in batch_set])
-
-            mix_spec = pad_sequence([
-                th.tensor(np.abs(mix), dtype=th.float32)
-                for (mix, _) in batch_set], batch_first=True)
-
-            mix_phase = pad_sequence([
-                th.tensor(np.angle(mix), dtype=th.float32)
-                for (mix, _) in batch_set], batch_first=True)
-
-            sources_spec = []
-            for i in range(self.num_s):
-                source_Ns_spec = pad_sequence([
-                    th.tensor(np.abs(sources[i]), dtype=th.float32)
-                    for (_, sources) in batch_set], batch_first=True)
-                sources_spec.append(source_Ns_spec)
-
-            sources_phase = []
-            for i in range(self.num_s):
-                source_Ns_phase = pad_sequence([
-                    th.tensor(np.abs(sources[i]), dtype=th.float32)
-                    for (_, sources) in batch_set], batch_first=True)
-                sources_phase.append(source_Ns_phase)
-
-            model_input = (model_input.cuda() if th.cuda.is_available() else
-                    model_input.to(DEVICE))
+            (input_sizes, model_input,
+                mix_spec, mix_phase,
+                sources_spec, sources_phase) = self.process_batch_set(batch_set)
 
             dprint(f"  input_sizes: {input_sizes.size()}", level=3)
             dprint(f"  model_input: {type(model_input)}", level=3)
@@ -249,6 +222,44 @@ class TrainUpit(object):
         # return the average loss?
         return total_loss / batch_count
 
+    def process_batch_set(self, batch_set):
+        input_sizes = th.tensor([mix.shape[0] for (mix, _) in batch_set],
+                dtype=th.float32)
+        model_input = pack_sequence([
+            th.tensor(np.abs(mix), dtype=th.float32)
+            for (mix, _) in batch_set])
+
+        model_input = (model_input.cuda() if th.cuda.is_available() else
+                model_input.to(DEVICE))
+
+
+        mix_spec = pad_sequence([
+            th.tensor(np.abs(mix), dtype=th.float32)
+            for (mix, _) in batch_set], batch_first=True)
+
+        mix_phase = pad_sequence([
+            th.tensor(np.angle(mix), dtype=th.float32)
+            for (mix, _) in batch_set], batch_first=True)
+
+        sources_spec = []
+        for i in range(self.num_s):
+            source_Ns_spec = pad_sequence([
+                th.tensor(np.abs(sources[i]), dtype=th.float32)
+                for (_, sources) in batch_set], batch_first=True)
+            sources_spec.append(source_Ns_spec)
+
+        sources_phase = []
+        for i in range(self.num_s):
+            source_Ns_phase = pad_sequence([
+                th.tensor(np.abs(sources[i]), dtype=th.float32)
+                for (_, sources) in batch_set], batch_first=True)
+            sources_phase.append(source_Ns_phase)
+
+        return (input_sizes, model_input,
+                mix_spec, mix_phase,
+                sources_spec, sources_phase)
+
+
     def train(self, train_data):
         self.model.train()
         total_loss = 0
@@ -260,7 +271,7 @@ class TrainUpit(object):
         for batch_i in range(0, n, self.batch_size):
             batch_count += 1
             batch_indices = indices[batch_i:batch_i+self.batch_size]
-            # Sort longest first to be able to pack
+            # Sort longest first (required for pack)
             # train_data returns (mix_spec, [src1_spec, src2_spec])
             batch_set = sorted([train_data[i] for i in batch_indices],
                     key=lambda x: x[0].shape[0],
@@ -268,60 +279,12 @@ class TrainUpit(object):
             dprint(f"Batch indices: {batch_indices}", level=2)
             if DEBUG_LEVEL >= 3:
                 for i, (mix, sources) in enumerate(batch_set):
-                    dprint(f"  {i:2d} Mix: {mix.shape}, sources: {[s.shape for s in sources]}", level=3)
+                    dprint(f"  {i:2d} Mix: {mix.shape}, "
+                            f"sources: {[s.shape for s in sources]}", level=3)
 
-            # DataLoader._transform called on dataset output one at a time
-            #   (mix_spec, [src1_spec, src2_spec])
-            # And it returns:
-            #   num_frames: mix_spec.shape[0]
-            #   feature: th.tensor(np.abs(mix_spec), dtype=th.float32)
-            #   source_attr:
-            #       spectrogram: th.tensor(np.abs(mix_spec), dtype=th.float32)
-            #       phase: th.tensor(np.angle(mix_spec), dtype=th.float32)
-            #   target_attr:
-            #       spectrogram: [th.tensor(np.abs(mix_spec), dtype=th.float32),
-            #           ...]
-            #       phase: [th.tensor(np.angle(mix_spec), dtype=th.float32),
-            #           ...]
-
-            input_sizes = th.tensor([mix.shape[0] for (mix, _) in batch_set],
-                    dtype=th.float32)
-            model_input = pack_sequence([
-                th.tensor(np.abs(mix), dtype=th.float32)
-                for (mix, _) in batch_set])
-
-            mix_spec = pad_sequence([
-                th.tensor(np.abs(mix), dtype=th.float32)
-                for (mix, _) in batch_set], batch_first=True)
-
-            mix_phase = pad_sequence([
-                th.tensor(np.angle(mix), dtype=th.float32)
-                for (mix, _) in batch_set], batch_first=True)
-
-            sources_spec = []
-            for i in range(self.num_s):
-                source_Ns_spec = pad_sequence([
-                    th.tensor(np.abs(sources[i]), dtype=th.float32)
-                    for (_, sources) in batch_set], batch_first=True)
-                sources_spec.append(source_Ns_spec)
-
-            sources_phase = []
-            for i in range(self.num_s):
-                source_Ns_phase = pad_sequence([
-                    th.tensor(np.abs(sources[i]), dtype=th.float32)
-                    for (_, sources) in batch_set], batch_first=True)
-                sources_phase.append(source_Ns_phase)
-
-            # This was wrong: it should be a pad_sequence across the sources,
-            # not a pad_sequence per source.
-            #sources_spec = [pad_sequence([
-                #th.tensor(np.abs(source), dtype=th.float32)
-                #for source in sources], batch_first=True)
-                #for (_, sources) in batch_set]
-            #sources_phase = [pad_sequence([
-                #th.tensor(np.angle(source), dtype=th.float32)
-                #for source in sources], batch_first=True)
-                #for (_, sources) in batch_set]
+            (input_sizes, model_input,
+                mix_spec, mix_phase,
+                sources_spec, sources_phase) = self.process_batch_set(batch_set)
 
             if DEBUG_LEVEL >= 3:
                 for i, src in enumerate(sources_spec):
@@ -330,30 +293,6 @@ class TrainUpit(object):
                     dprint(f" source_phase {i:3d}: {src.size()}", level=3)
             dprint(f"sources_spec {len(sources_spec)}", level=3)
             dprint(f"sources_phase {len(sources_phase)}", level=3)
-
-            # DataLoader._process(batch)
-            #   * calls _transform to get a list of dicts
-            #   * sorts by reverse num_frames (longest first...)
-            # Returns:
-            #   input_sizes: th.tensor([num_frames in batch], dtype=th.float32)
-            #   input_feats: pack_squence([feature in batch])
-            #   source_attr:
-            #       spectrogram: pad_sequence([spectrogram in batch],
-            #           batch_first=True)
-            #       phase: pad_sequence([phase in batch],
-            #           batch_first=True)
-            #   target_attr:
-            #       spectrogram: [pad_sequence([spectrogram in target],
-            #           batch_first=True), ...]
-            #       phase: [pad_sequence([phase in target],
-            #           batch_first=True), ...]
-
-
-            # get the input
-            # model_input = packed_sequence_cuda(model_input) if isinstance(
-                # model_input, PackedSequence) else model_input.to(device)
-            model_input = (model_input.cuda() if th.cuda.is_available() else
-                    model_input.to(DEVICE))
 
             self.optimizer.zero_grad()
 
