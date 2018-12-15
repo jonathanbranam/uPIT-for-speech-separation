@@ -16,6 +16,9 @@ Options:
     --src2-dir SRC2-DIR                 # directory beneath root with source 2 [default: s2]
     --train-file-list TRAIN-FL          # file that contains training set [default: train.txt]
     --valid-file-list VAL-FL            # file that contains validation set [default: validation.txt]
+    --output-dir OUTPUT-DIR             # output directory [default: out]
+    --save-every SAVE-EVERY             # save model every N epochs [default: 10]
+    --init-model INIT-MODEL             # load initial model parameters
                                         #
     --num-speakers NUM-SPEAKERS         # number of speakers [default: 2]
     --epochs EPOCHS                     # number of epochs [default: 10]
@@ -46,11 +49,13 @@ from docopt import docopt
 from itertools import permutations
 import time
 
+from pathlib import Path
+
 import librosa
 
-import torch as th
 import numpy as np
 
+import torch as th
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.nn.utils.rnn import pack_sequence, pad_sequence
 from torch.nn.utils.rnn import PackedSequence, pad_packed_sequence
@@ -420,8 +425,12 @@ class TrainUpit(object):
         # uttloader creates a Dataset which is passed to a DataLoader and returned
         # DataLoader implements __iter__(self) and yields the data in batches
         # load cv data
-        
+
         dprint(f"Beginning training on {DEVICE}...")
+
+        self.out_dir = Path(args['--output-dir'])
+        self.out_dir.mkdir(parents=True, exist_ok=True)
+        self.save_every = int(args['--save-every'])
 
         train_filelist = args['--train-file-list']
         valid_filelist = args['--valid-file-list']
@@ -458,14 +467,17 @@ class TrainUpit(object):
 
         for epoch in range(self.epochs):
             dprint(f"Epoch {epoch:3d}.")
+
             dprint("  Begin training...")
             train_start = time.time()
             train_loss = self.train(train_data)
-            # do some validation
+
             dprint("  Validation...")
             val_start = time.time()
             val_loss = self.validate(valid_data)
             val_end = time.time()
+
+            # step the lr scheduler based on validation loss
             self.sched.step(val_loss)
 
             dprint(f"  training loss: {train_loss:.4f}"
@@ -473,9 +485,11 @@ class TrainUpit(object):
                     f"({val_end-val_start:.1f}s)")
 
             # Save out the model params sometimes
+            if (epoch+1) % self.save_every == 0 or (epoch+1) == self.epochs:
+                save_path = self.out_dir / f"model.{epoch+1:02d}.pkl"
+                dprint(f"Saving model to {save_path}")
+                th.save(self.model.state_dict(), save_path)
 
-
-from pathlib import Path
 
 class WavLoader(object):
     """Load waves from disk applying the given transform
