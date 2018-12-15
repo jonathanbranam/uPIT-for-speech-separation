@@ -19,6 +19,8 @@ Options:
     --output-dir OUTPUT-DIR             # output directory [default: out]
     --save-every SAVE-EVERY             # save model every N epochs [default: 10]
     --init-model INIT-MODEL             # load initial model parameters
+    --start-epoch START-EPOCH           # count of initial epoch for continued
+                                        #   training session [default: 1]
                                         #
     --num-speakers NUM-SPEAKERS         # number of speakers [default: 2]
     --epochs EPOCHS                     # number of epochs [default: 10]
@@ -47,7 +49,9 @@ Examples:
     ./train.py --epochs 10
 
     # Load previous model file and continue training
-    ./train.py --epochs 10 --init-model out/model.10.pkl
+    ./train.py --epochs 10
+    ./train.py --epochs 10 --start-epoch 11 --init-model out/model.10.pkl
+    ./train.py --epochs 10 --start-epoch 21 --init-model out/model.20.pkl
 """
 
 from docopt import docopt
@@ -144,6 +148,7 @@ class TrainUpit(object):
                 f"Window: {self.window}")
 
         self.epochs = int(args['--epochs'])
+        self.start_epoch = int(args['--start-epoch'])
         self.num_layers = int(args['--num-layers'])
         self.layer_size = int(args['--layer-size'])
         self.batch_size = int(args['--batch-size'])
@@ -198,7 +203,7 @@ class TrainUpit(object):
             batch_set = sorted([valid_data[i] for i in batch_indices],
                     key=lambda x: x[0].shape[0],
                     reverse=True)
-            dprint(f"Batch indices: {batch_indices}", level=2)
+            dprint(f"Batch indices: {batch_indices}", level=3)
 
             (input_sizes, model_input,
                 mix_spec, mix_phase,
@@ -276,7 +281,7 @@ class TrainUpit(object):
             batch_set = sorted([train_data[i] for i in batch_indices],
                     key=lambda x: x[0].shape[0],
                     reverse=True)
-            dprint(f"Batch indices: {batch_indices}", level=2)
+            dprint(f"Batch indices: {batch_indices}", level=3)
             if DEBUG_LEVEL >= 3:
                 for i, (mix, sources) in enumerate(batch_set):
                     dprint(f"  {i:2d} Mix: {mix.shape}, "
@@ -417,7 +422,7 @@ class TrainUpit(object):
                     hop_size=self.hop_size, window=self.window),
             ])
 
-        for epoch in range(self.epochs):
+        for epoch in range(self.start_epoch, self.start_epoch+self.epochs):
             dprint(f"Epoch {epoch:3d}.")
 
             dprint("  Begin training...")
@@ -437,8 +442,9 @@ class TrainUpit(object):
                     f"({val_end-val_start:.1f}s)")
 
             # Save out the model params sometimes
-            if (epoch+1) % self.save_every == 0 or (epoch+1) == self.epochs:
-                save_path = self.out_dir / f"model.{epoch+1:02d}.pkl"
+            if (epoch % self.save_every == 0
+                    or epoch+1 == self.start_epoch + self.epochs):
+                save_path = self.out_dir / f"model.{epoch:02d}.pkl"
                 dprint(f"Saving model to {save_path}")
                 th.save(self.model.state_dict(), save_path)
 
